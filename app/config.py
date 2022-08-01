@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     database_user: str
     database_password: str
     database_name: str
-    database_url: str
+    database_uri: str
     algorithm = str = "HS256"
     secret_key = str
     access_token_expire_minutes: int
