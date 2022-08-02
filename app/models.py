@@ -15,7 +15,8 @@ class UserModel(Base):
     password = Column(String)
     date_of_birth = Column(String)
     is_active = Column(Boolean, default=True)
-    role = Column(String)
+    role = Column(Enum("user", "admin", "host", name="role"),
+                  default="user", nullable=False)
     last_seen = Column(TIMESTAMP(timezone=True),
                        server_default=text('NOW()'), nullable=False)
     phone_number = Column(String)
