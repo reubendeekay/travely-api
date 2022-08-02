@@ -10,7 +10,7 @@ from ..database import get_db
 router = APIRouter(tags=["Destination"], prefix="/destinations")
 
 
-@router.get("/", response_model=List[destination_schema.DesriptionOut], status_code=status.HTTP_200_OK)
+@router.get("/", response_model=List[destination_schema.DestinationOut], status_code=status.HTTP_200_OK)
 async def get_destinations(db: Session = Depends(get_db), current_user=Depends(get_current_user), limit: int = 50, skip: int = 0, search: str = None):
     return db.query(models.DestinationModel).offset(skip).limit(limit).all()
 
@@ -24,7 +24,7 @@ async def get_destination(destination_id: int, db: Session = Depends(get_db), cu
     return destination
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED, response_model=destination_schema.DesriptionOut)
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=destination_schema.DestinationOut)
 async def create_destination(destination: destination_schema.DestinationCreate, db: Session = Depends(get_db)):
     # Check if destination already exists
     destination_exists = db.query(models.DestinationModel).filter(

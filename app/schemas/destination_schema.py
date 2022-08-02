@@ -21,6 +21,6 @@ class DestinationCreate(DestinationBase):
     pass
 
 
-class DesriptionOut(BaseModel):
+class DestinationOut(DestinationBase):
     id: int
     travelies: List[TravelyOut]

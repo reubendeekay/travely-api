@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routes import user, auth, travely, room, book, transaction
+from .routes import user, auth, travely, room, book, transaction, destination, promo
 
 from .database import engine
 from .models import Base
@@ -25,6 +25,8 @@ app.include_router(travely.router)
 app.include_router(room.router)
 app.include_router(book.router)
 app.include_router(transaction.router)
+app.include_router(destination.router)
+app.include_router(promo.router)
 
 
 @app.get("/")
