@@ -135,3 +135,19 @@ class PromotionModel(Base):
     views = Column(Integer, nullable=False)
     created_at = Column(TIMESTAMP(timezone=True),
                         server_default=text('NOW()'), nullable=False)
+
+
+class ReviewModel(Base):
+    __tablename__ = "reviews"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey(
+        "users.id", ondelete="CASCADE"), nullable=False)
+    travely_id = Column(Integer, ForeignKey(
+        "travelies.id", ondelete="CASCADE"), nullable=False)
+
+    rating = Column(Integer)
+    description = Column(String)
+    created_at = Column(TIMESTAMP(timezone=True),
+                        server_default=text('NOW()'), nullable=False)
+
+    user = relationship("UserModel")

@@ -1,13 +1,25 @@
 from datetime import datetime
 from pydantic import BaseModel, Field
+from ..schemas.user_schema import UserOut
 
 
 class ReviewBase(BaseModel):
-    id: int
-    user_name: str
-    user_id: str
+
+    user: UserOut
+    user_id: int
+    travely_id: int
     review: str
-    rating: int
+
+    class Config:
+        orm_mode = True
+
+
+class ReviewCreate(ReviewBase):
+    pass
+
+
+class ReviewOut(ReviewBase):
+    id: int
     created_at: datetime
 
     class Config:
