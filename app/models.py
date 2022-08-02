@@ -1,4 +1,4 @@
-from enum import unique
+
 from sqlalchemy.sql.expression import text
 
 from sqlalchemy import ARRAY, Boolean, Column, Enum, ForeignKey, Integer, String, Float, Index, Computed, null
@@ -127,7 +127,7 @@ class PromotionModel(Base):
     description = Column(String)
     user_id = Column(Integer, ForeignKey(
         "users.id", ondelete="CASCADE"), nullable=False)
-    type = Column(Enum("link", "travely", "destination", "user"),
+    type = Column(Enum("link", "travely", "destination", "user", name="promotion_type"),
                   nullable=False)
     action = Column(String, nullable=False)
     clicks = Column(Integer, nullable=False)
