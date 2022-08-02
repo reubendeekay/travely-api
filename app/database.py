@@ -22,3 +22,6 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+# Iam dependable and I love helping (team) develop ideas and implement code on various products while gaining valuable experience with latest technologies and tools. I also would like to apply knowledge and skills acquired to work on software user interfaces. This will help me hone my problem-solving skills to keep projects moving forward.I am dedicated to giving customers the best possible software with high-quality programming and debugging of software systems.

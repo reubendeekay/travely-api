@@ -4,15 +4,16 @@ from ..database import get_db
 from .. import models
 from ..oauth2 import verify_password, create_access_token
 from sqlalchemy.orm import Session
+from fastapi.security import OAuth2PasswordRequestForm
 
 
 router = APIRouter(tags=["Login"], prefix="/login")
 
 
 @router.post("/", response_model=tokens.Token, status_code=status.HTTP_200_OK)
-async def login(user: user_schema.UserLogin, db: Session = Depends(get_db)):
+async def login(user:  OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     get_user = db.query(models.UserModel).filter(
-        models.UserModel.email == user.email).first()
+        models.UserModel.email == user.username).first()
 
     if get_user is None:
         raise HTTPException(status_code=404, detail="User not found")

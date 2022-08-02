@@ -7,9 +7,11 @@ from app.schemas.review_schema import ReviewBase
 
 
 class TravelyBase(BaseModel):
+    cover_image: str
 
     images: list = []
     name: str
+    city: str
 
     description: str
     price: float
@@ -21,6 +23,8 @@ class TravelyBase(BaseModel):
     tags: list = []
     views: int = 0
     rating: float = 0
+    is_available: bool = True
+    is_active: bool = True
 
     bookings: int = 0
 

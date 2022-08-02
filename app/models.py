@@ -1,6 +1,7 @@
+from enum import unique
 from sqlalchemy.sql.expression import text
 
-from sqlalchemy import ARRAY, Boolean, Column, ForeignKey, Integer, String, Float, Index, Computed
+from sqlalchemy import ARRAY, Boolean, Column, Enum, ForeignKey, Integer, String, Float, Index, Computed, null
 from sqlalchemy.orm import relationship
 from .database import Base
 from sqlalchemy.types import TIMESTAMP
@@ -12,6 +13,7 @@ class UserModel(Base):
     full_name = Column(String, nullable=False)
     email = Column(String, unique=True, index=True)
     password = Column(String)
+    date_of_birth = Column(String)
     is_active = Column(Boolean, default=True)
     role = Column(String)
     last_seen = Column(TIMESTAMP(timezone=True),
@@ -27,18 +29,22 @@ class UserModel(Base):
 class TravelyModel(Base):
     __tablename__ = "travelies"
     id = Column(Integer, primary_key=True, index=True)
+    cover_image = Column(String, nullable=False)
     owner_id = Column(Integer, ForeignKey(
         "users.id", ondelete="CASCADE"), nullable=False)
     owner = relationship("UserModel")
     name = Column(String)
     images = Column(ARRAY(String))
     price = Column(Integer)
+    city = Column(String)
     description = Column(String)
     latitude = Column(Integer)
     longitude = Column(Integer)
     address = Column(String)
     ammenities = Column(String)
     category = Column(String)
+    is_available = Column(Boolean, default=True)
+    is_active = Column(Boolean, default=True)
     tags = Column(ARRAY(String))
     views = Column(Integer)
     rating = Column(Integer)
@@ -46,6 +52,7 @@ class TravelyModel(Base):
     created_at = Column(TIMESTAMP(timezone=True),
                         server_default=text('NOW()'), nullable=False)
     ammenities = Column(ARRAY(String))
+    reviews = relationship("ReviewModel")
 
 
 class RoomModel(Base):
@@ -58,6 +65,7 @@ class RoomModel(Base):
     price = Column(Float)
     description = Column(String)
     rating = Column(Integer)
+    is_available = Column(Boolean, default=True)
     bookings = Column(Integer)
     created_at = Column(TIMESTAMP(timezone=True),
                         server_default=text('NOW()'), nullable=False)
@@ -94,5 +102,35 @@ class TransactionModel(Base):
     amount = Column(Float)
     transaction_id = Column(String)
     payment_method = Column(String)
+    created_at = Column(TIMESTAMP(timezone=True),
+                        server_default=text('NOW()'), nullable=False)
+
+
+class DestinationModel(Base):
+    __tablename__ = "destinations"
+    id = Column(Integer, primary_key=True, index=True)
+    images = Column(ARRAY(String))
+    city = Column(String, unique=True)
+    country = Column(String)
+    description = Column(String)
+    bookings = Column(Integer)
+    views = Column(Integer)
+    created_at = Column(TIMESTAMP(timezone=True),
+                        server_default=text('NOW()'), nullable=False)
+
+
+class PromotionModel(Base):
+    __tablename__ = "promotions"
+    id = Column(Integer, primary_key=True, index=True)
+    cover_image = Column(String, nullable=False)
+    name = Column(String)
+    description = Column(String)
+    user_id = Column(Integer, ForeignKey(
+        "users.id", ondelete="CASCADE"), nullable=False)
+    type = Column(Enum("link", "travely", "destination", "user"),
+                  nullable=False)
+    action = Column(String, nullable=False)
+    clicks = Column(Integer, nullable=False)
+    views = Column(Integer, nullable=False)
     created_at = Column(TIMESTAMP(timezone=True),
                         server_default=text('NOW()'), nullable=False)

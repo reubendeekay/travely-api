@@ -9,7 +9,7 @@ class UserBase(BaseModel):
     full_name: str
     role: str
     is_active: bool = True
-
+    date_of_birth: datetime.date
     phone_number: str
     profile_pic: str
     push_token: str = None
