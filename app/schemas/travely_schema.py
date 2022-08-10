@@ -40,6 +40,8 @@ class TravelyOut(BaseModel):
     cover_image: str
     name: str
     price: float
+    category = str
+
     address: str
     city: str
     rating: float
