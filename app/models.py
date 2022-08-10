@@ -1,7 +1,7 @@
 
 from sqlalchemy.sql.expression import text
 
-from sqlalchemy import ARRAY, Boolean, Column, Enum, ForeignKey, Integer, String, Float, Index, Computed, null
+from sqlalchemy import ARRAY, Boolean, Column, Enum, ForeignKey, Integer, String, Float
 from sqlalchemy.orm import relationship
 from .database import Base
 from sqlalchemy.types import TIMESTAMP
@@ -33,7 +33,6 @@ class TravelyModel(Base):
     cover_image = Column(String, nullable=False)
     owner_id = Column(Integer, ForeignKey(
         "users.id", ondelete="CASCADE"), nullable=False)
-    owner = relationship("UserModel")
     name = Column(String)
     images = Column(ARRAY(String))
     price = Column(Integer)
@@ -53,7 +52,10 @@ class TravelyModel(Base):
     created_at = Column(TIMESTAMP(timezone=True),
                         server_default=text('NOW()'), nullable=False)
     ammenities = Column(ARRAY(String))
-    reviews = relationship("ReviewModel")
+
+    owner = relationship("UserModel")
+
+    rooms = relationship("RoomModel", back_populates="travely")
 
 
 class RoomModel(Base):
@@ -70,6 +72,7 @@ class RoomModel(Base):
     bookings = Column(Integer)
     created_at = Column(TIMESTAMP(timezone=True),
                         server_default=text('NOW()'), nullable=False)
+    travely = relationship("TravelyModel", back_populates="rooms")
 
 
 class BookingModel(Base):

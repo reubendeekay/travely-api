@@ -21,7 +21,7 @@ async def get_travelies(current_user=Depends(get_current_user), db: Session = De
 
 # GET A SPECIFIC TRAVELY
 
-@router.get("/{travely_id}", response_model=travely_schema.TravelyOut, status_code=status.HTTP_200_OK)
+@router.get("/{travely_id}", response_model=travely_schema.TravelyDetails, status_code=status.HTTP_200_OK)
 async def get_travely(travely_id: str, current_user=Depends(get_current_user), db: Session = Depends(get_db)):
     travely = db.query(models.TravelyModel).filter(
         models.TravelyModel.id == travely_id).first()

@@ -1,9 +1,11 @@
 from datetime import datetime
+from typing import List
 
 
 from pydantic import BaseModel, Field
 
 from app.schemas.review_schema import ReviewBase
+from . import user_schema, room_schema
 
 
 class TravelyBase(BaseModel):
@@ -32,21 +34,36 @@ class TravelyBase(BaseModel):
         orm_mode = True
 
 
-class TravelyOut(TravelyBase):
+class TravelyOut(BaseModel):
     id: int
     owner_id: int
+    cover_image: str
+    name: str
+    price: float
+    address: str
+    city: str
+    rating: float
+    latitude: float
+    longitude: float
 
     created_at: datetime
+
+    class Config:
+        orm_mode = True
 
 
 class TravelyDetails(TravelyBase):
     id: int
-    # reviews: List[ReviewBase] = []
+    owner_id: int
+    owner: user_schema.UserOut
+    rooms: List[room_schema.RoomOut]
 
     createdAt: datetime = Field(
         default_factory=datetime.now, alias="createdAt")
 
+    class Config:
+        orm_mode = True
+
 
 class TravelyCreate(TravelyBase):
-
     pass
