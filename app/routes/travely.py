@@ -64,3 +64,50 @@ async def update_travely(travely_id: str, travely: travely_schema.TravelyCreate,
     db.commit()
     db.refresh(travely_to_update.first())
     return travely_to_update.first()
+
+
+# CREATE A RULE FOR A TRAVELY
+@router.post("/{travely_id}/rules", status_code=status.HTTP_201_CREATED, response_model=travely_schema.TravelyOut)
+async def create_rule(travely_id: str, rule: travely_schema.RulesBase, current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+    travely = db.query(models.RulesModel).filter(
+        models.RulesModel.travely_id == travely_id)
+    if travely.first() is None:
+        raise HTTPException(status_code=404, detail="Travely not found")
+    new_rule = models.RulesModel(**rule.dict())
+    db.add(new_rule)
+    db.commit()
+
+    return travely.first()
+
+# DELETE A RULE FOR A TRAVELY
+
+
+@router.delete("/{travely_id}/rules", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_rule(travely_id: str, rule_id: str, current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+    travely = db.query(models.RulesModel).filter(
+        models.RulesModel.travely_id == travely_id)
+    if travely.first() is None:
+        raise HTTPException(status_code=404, detail="Travely not found")
+    rule = db.query(models.RulesModel).filter(
+        models.RulesModel.id == rule_id).delete(synchronize_session=False)
+    db.commit()
+    if rule is None:
+        raise HTTPException(status_code=404, detail="Rule not found")
+
+# UPDATE A RULE FOR A TRAVELY
+
+
+@router.put("/{travely_id}/rules", status_code=status.HTTP_200_OK, response_model=travely_schema.TravelyOut)
+async def update_rule(travely_id: str, rule: travely_schema.RulesBase, current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+    travely = db.query(models.RulesModel).filter(
+        models.RulesModel.travely_id == travely_id)
+    if travely.first() is None:
+        raise HTTPException(status_code=404, detail="Travely not found")
+    rule_to_update = db.query(models.RulesModel).filter(
+        models.RulesModel.id == rule.id)
+    if rule_to_update.first() is None:
+        raise HTTPException(status_code=404, detail="Rule not found")
+    rule_to_update.update(rule.dict())
+    db.commit()
+    db.refresh(rule_to_update.first())
+    return rule_to_update.first()
