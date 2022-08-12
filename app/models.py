@@ -65,6 +65,7 @@ class RoomModel(Base):
         'travelies.id', ondelete="CASCADE"), nullable=False)
     name = Column(String)
     images = Column(ARRAY(String))
+    quantity = Column(Integer, nullable=False)
     price = Column(Float)
     description = Column(String)
     rating = Column(Integer)
@@ -154,3 +155,18 @@ class ReviewModel(Base):
                         server_default=text('NOW()'), nullable=False)
 
     user = relationship("UserModel")
+
+
+class RulesModel(Base):
+    __tablename__ = "rules"
+    id = Column(Integer, primary_key=True, index=True)
+    travely_id = Column(Integer, ForeignKey(
+        "travelies.id", ondelete="CASCADE"), nullable=False)
+    check_in = Column(TIMESTAMP(timezone=True))
+    check_out = Column(TIMESTAMP(timezone=True))
+    pets: bool = Column(Boolean, default=False)
+    smoking: bool = Column(Boolean, default=False)
+    parties: bool = Column(Boolean, default=False)
+
+    created_at = Column(TIMESTAMP(timezone=True),
+                        server_default=text('NOW()'), nullable=False)

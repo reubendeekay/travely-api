@@ -8,6 +8,19 @@ from app.schemas.review_schema import ReviewBase
 from . import user_schema, room_schema
 
 
+class RulesBase(BaseModel):
+    id: int
+    check_in: datetime
+    check_out: datetime
+    pets: bool = False
+    smoking: bool = False
+    parties: bool = False
+    travely_id: int
+
+    class Config:
+        orm_mode = True
+
+
 class TravelyBase(BaseModel):
     cover_image: str
 
@@ -59,6 +72,7 @@ class TravelyDetails(TravelyBase):
     owner_id: int
     owner: user_schema.UserOut
     rooms: List[room_schema.RoomOut]
+    rules: List[RulesBase] = []
 
     createdAt: datetime = Field(
         default_factory=datetime.now, alias="createdAt")

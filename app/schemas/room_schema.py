@@ -12,6 +12,7 @@ class RoomBase(BaseModel):
     description: str
     rating: float = 0
     bookings: int = 0
+    quantity: int = 0
     is_available: bool = True
 
     class Config:
