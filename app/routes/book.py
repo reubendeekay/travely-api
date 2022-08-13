@@ -19,6 +19,17 @@ async def create_booking(booking: booking_schema.BookingCreate, db: Session = De
     db.add(new_booking)
     db.commit()
     db.refresh(new_booking)
+
+    room = db.query(models.RoomModel).filter(
+        models.RoomModel.id == booking.room_id)
+    room_details = room.first()
+    room.update({
+        'bookings': room_details.bookings+1,
+        'quantity': room_details.quantity-1
+    }, synchronize_session='evaluate')
+
+    db.commit()
+
     return new_booking
 
 

@@ -85,6 +85,8 @@ class BookingModel(Base):
     room_id = Column(Integer, ForeignKey(
         "rooms.id", ondelete="CASCADE"), nullable=False)
     guests = Column(Integer)
+    number_of_rooms = Column(Integer)
+    name = Column(String)
 
     created_at = Column(TIMESTAMP(timezone=True),
                         server_default=text('NOW()'), nullable=False)

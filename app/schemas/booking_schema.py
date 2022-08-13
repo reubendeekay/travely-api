@@ -6,8 +6,10 @@ class BookingBase(BaseModel):
 
     room_id: int
     guests: int
+    number_of_rooms: int
     check_in: datetime
     check_out: datetime
+    name: str
 
     status: str = "pending"
 
