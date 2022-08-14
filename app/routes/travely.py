@@ -42,20 +42,22 @@ async def get_travelies(background_tasks: BackgroundTasks, current_user=Depends(
 
 
 @router.get("/search", response_model=List[travely_schema.TravelyOut], status_code=status.HTTP_200_OK)
-async def get_travelies(search: str, background_tasks: BackgroundTasks, current_user=Depends(get_current_user), db: Session = Depends(get_db), limit: int = 50, skip: int = 0, filters: Optional[str] = Query(...)):
+async def get_travelies(search: str, background_tasks: BackgroundTasks, current_user=Depends(get_current_user), db: Session = Depends(get_db), limit: int = 50, skip: int = 0,
+                        # filters: Optional[str] = Query(...)
+                        ):
     if search:
         background_tasks.add_task(add_recent_search)
 
-    if filters:
-        newFilter = json.loads(filters)
-        ll_filters = parse_obj_as(List[travely_schema.QueryFilter], newFilter)
+    # if filters:
+    #     newFilter = json.loads(filters)
+    #     ll_filters = parse_obj_as(List[travely_schema.QueryFilter], newFilter)
 
-        # Execute the filters
-        for filter in ll_filters:
-            db = db.query(models.TravelyModel).filter(
-                filter.get_sqlalchemy_filter(models.TravelyModel))
+    #     # Execute the filters
+    #     for filter in ll_filters:
+    #         db = db.query(models.TravelyModel).filter(
+    #             filter.get_sqlalchemy_filter(models.TravelyModel))
 
-        return db.query(models.TravelyModel).filter().offset(skip).limit(limit).all()
+    #     return db.query(models.TravelyModel).filter().offset(skip).limit(limit).all()
 
     return db.query(models.TravelyModel).filter(models.TravelyModel.name.ilike(search)
 
