@@ -59,7 +59,7 @@ async def get_travelies(search: str, background_tasks: BackgroundTasks, current_
 
     #     return db.query(models.TravelyModel).filter().offset(skip).limit(limit).all()
 
-    return db.query(models.TravelyModel).filter(models.TravelyModel.name.ilike(search)
+    return db.query(models.TravelyModel).filter(models.TravelyModel.name.contains(search)
 
 
 
