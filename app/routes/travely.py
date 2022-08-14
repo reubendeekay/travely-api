@@ -1,5 +1,5 @@
 
-from typing import List
+from typing import List, Optional
 from pydantic import parse_obj_as
 
 from fastapi import APIRouter, Body, Depends, HTTPException, status, BackgroundTasks, Query
@@ -42,7 +42,7 @@ async def get_travelies(background_tasks: BackgroundTasks, current_user=Depends(
 
 
 @router.get("/search", response_model=List[travely_schema.TravelyOut], status_code=status.HTTP_200_OK)
-async def get_travelies(search: str, background_tasks: BackgroundTasks, current_user=Depends(get_current_user), db: Session = Depends(get_db), limit: int = 50, skip: int = 0, filters: str = Query(...)):
+async def get_travelies(search: str, background_tasks: BackgroundTasks, current_user=Depends(get_current_user), db: Session = Depends(get_db), limit: int = 50, skip: int = 0, filters: Optional[str] = Query(...)):
     if search:
         background_tasks.add_task(add_recent_search)
 
