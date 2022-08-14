@@ -67,15 +67,17 @@ async def get_travelies(search: str, background_tasks: BackgroundTasks, current_
 
 @router.get("/nearby", response_model=List[travely_schema.TravelyOut], status_code=status.HTTP_200_OK)
 def get_results_per_location(lat: float, long: float, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
-
+    travelies = db.query(models.TravelyModel).all()
+    nearby_travelies = []
     # Get all travelies ON 100KM RADIUS
-    travelies = db.query(models.TravelyModel).filter(
-        mpu.haversine_distance((lat, long), (models.TravelyModel.latitude, models.TravelyModel.longitude)) < 100).all()
-    if len(travelies) > 10:
-        return travelies
-    alternatives = db.query(models.TravelyModel).filter(
-        mpu.haversine_distance((lat, long), (models.TravelyModel.latitude, models.TravelyModel.longitude)) < 1000).all()
-    return alternatives if len(alternatives) > 10 else db.query(models.TravelyModel).all()
+    for travelie in travelies:
+        if mpu.haversine_distance((lat, long), (travelie.latitude, travelie.longitude)) < 100:
+            nearby_travelies.append(travelie)
+    if (len(nearby_travelies) < 10):
+        return nearby_travelies[:10]
+    if mpu.haversine_distance((lat, long), (travelie.latitude, travelie.longitude)) < 1000:
+        nearby_travelies.append(travelie)
+    return nearby_travelies[:10] if (len(nearby_travelies) < 10) else nearby_travelies
 
 
 # GET A SPECIFIC TRAVELY
