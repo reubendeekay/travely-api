@@ -36,3 +36,16 @@ class UserLogin(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class RecentSearch(BaseModel):
+    name: str
+
+    class Config:
+        orm_mode = True
+
+
+class RecentSearchOut(RecentSearch):
+    id: int
+    user_id: int
+    created_at: datetime.datetime

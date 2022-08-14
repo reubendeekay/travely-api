@@ -1,11 +1,40 @@
+from curses.ascii import isdigit
 from datetime import datetime
-from typing import List
+from typing import List, Literal, Union
 
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, root_validator, parse_obj_as
+from ..database import Base
 
 from app.schemas.review_schema import ReviewBase
 from . import user_schema, room_schema
+
+
+class QueryFilter(BaseModel):
+    field: str
+
+    value: Union[str, int, datetime, float, list, dict]
+
+    @root_validator
+    def validate_value(cls, values):
+
+        operator, value = values.get("operator"), values.get("value")
+
+        # is int
+        if not value.isdigit() and operator in {"<=", "<", ">", ">="}:
+            raise ValueError("Not Found")
+
+    def get_sqlalchemy_filter(model: Base, self):
+        field = getattr(model, self.field)
+        value = self.value
+
+        if isinstance(value, str):
+            if value.isdigit():
+                value < float(value)
+            else:
+                value = value.lower()
+
+        return field.contains(value)
 
 
 class RulesBase(BaseModel):

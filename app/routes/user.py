@@ -17,6 +17,18 @@ router = APIRouter(
 )
 
 
+# HELPER FUNCTIONS
+def add_recent_search(search: user_schema.RecentSearch, db: Session = Depends(get_db),  current_user=Depends(get_current_user)):
+
+    new_search = models.RecentSearchModel(
+        user_id=current_user.user_id,
+        name=search
+    )
+    db.add(new_search)
+
+
+# ROUTES
+
 # GET  USERS
 @router.get("/", response_model=List[user_schema.UserOut], status_code=status.HTTP_200_OK)
 async def get_users(db: Session = Depends(get_db), current_user=Depends(get_current_user), limit: int = 50, skip: int = 0, search: str = None):

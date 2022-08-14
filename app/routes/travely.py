@@ -1,22 +1,67 @@
 
-from typing import List, Optional
+from typing import List
+from pydantic import parse_obj_as
 
-from fastapi import APIRouter, Body, Depends, HTTPException, status
+from fastapi import APIRouter, Body, Depends, HTTPException, status, BackgroundTasks, Query
 from ..schemas import travely_schema
 from sqlalchemy.orm import Session
 from ..database import get_db
 from .. import models
 from ..oauth2 import get_current_user
+from .user import add_recent_search
+import json
 
 
 router = APIRouter(tags=["Travelies"], prefix="/travelies",)
 
+
+# HELPER FUNCTIONS
+def get_results_per_recent_searches(db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    recent_searches = db.query(models.RecentSearchModel).filter(
+        models.RecentSearchModel.user_id == current_user.user_id).limit(10).all()
+
+    # return only the names in a list
+    return [search.name for search in recent_searches]
+
+
 # GET TRAVELIES
-
-
 @router.get("/", response_model=List[travely_schema.TravelyOut], status_code=status.HTTP_200_OK)
-async def get_travelies(current_user=Depends(get_current_user), db: Session = Depends(get_db), limit: int = 50, skip: int = 0, search: str = "", category: str = "",):
-    return db.query(models.TravelyModel).filter(models.TravelyModel.name.contains(search) | models.TravelyModel.category.contains(category)).offset(skip).limit(limit).all()
+async def get_travelies(background_tasks: BackgroundTasks, current_user=Depends(get_current_user), db: Session = Depends(get_db), limit: int = 50, skip: int = 0, ):
+
+    recent_searches = get_results_per_recent_searches(db, current_user)
+
+    # Check if there are recent searches
+    if len(recent_searches) > 0:
+
+        return db.query(models.TravelyModel).filter(
+            models.TravelyModel.name.in_(recent_searches)).offset(skip).limit(limit).all()
+    else:
+        return db.query(models.TravelyModel).offset(skip).limit(limit).all()
+
+# Get Searches
+
+
+@router.get("/search", response_model=List[travely_schema.TravelyOut], status_code=status.HTTP_200_OK)
+async def get_travelies(search: str, background_tasks: BackgroundTasks, current_user=Depends(get_current_user), db: Session = Depends(get_db), limit: int = 50, skip: int = 0, filters: str = Query(...)):
+    if search:
+        background_tasks.add_task(add_recent_search)
+
+    if filters:
+        newFilter = json.loads(filters)
+        ll_filters = parse_obj_as(List[travely_schema.QueryFilter], newFilter)
+
+        # Execute the filters
+        for filter in ll_filters:
+            db = db.query(models.TravelyModel).filter(
+                filter.get_sqlalchemy_filter(models.TravelyModel))
+
+        return db.query(models.TravelyModel).filter().offset(skip).limit(limit).all()
+
+    return db.query(models.TravelyModel).filter(models.TravelyModel.name.ilike(search)
+
+
+
+                                                ).offset(skip).limit(limit).all()
 
 
 # GET A SPECIFIC TRAVELY
@@ -41,29 +86,6 @@ async def create_travely(travely: travely_schema.TravelyCreate, status_code=stat
     db.commit()
     db.refresh(new_travely)
     return new_travely
-
-
-# DELETE A TRAVELY
-@router.delete("/{travely_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_travely(travely_id: str, current_user=Depends(get_current_user), db: Session = Depends(get_db)):
-    travely = db.query(models.TravelyModel).filter(
-        models.TravelyModel.id == travely_id).delete(synchronize_session=False)
-    db.commit()
-    if travely is None:
-        raise HTTPException(status_code=404, detail="Travely not found")
-
-
-# UPDATE A TRAVELY
-@router.put("/{travely_id}", status_code=status.HTTP_200_OK, response_model=travely_schema.TravelyOut)
-async def update_travely(travely_id: str, travely: travely_schema.TravelyCreate, current_user=Depends(get_current_user), db: Session = Depends(get_db)):
-    travely_to_update = db.query(models.TravelyModel).filter(
-        models.TravelyModel.id == travely_id)
-    if travely_to_update.first() is None:
-        raise HTTPException(status_code=404, detail="Travely not found")
-    travely_to_update.update(travely.dict())
-    db.commit()
-    db.refresh(travely_to_update.first())
-    return travely_to_update.first()
 
 
 # CREATE A RULE FOR A TRAVELY
@@ -94,6 +116,17 @@ async def delete_rule(travely_id: str, rule_id: str, current_user=Depends(get_cu
     if rule is None:
         raise HTTPException(status_code=404, detail="Rule not found")
 
+
+# DELETE A TRAVELY
+@router.delete("/{travely_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_travely(travely_id: str, current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+    travely = db.query(models.TravelyModel).filter(
+        models.TravelyModel.id == travely_id).delete(synchronize_session=False)
+    db.commit()
+    if travely is None:
+        raise HTTPException(status_code=404, detail="Travely not found")
+
+
 # UPDATE A RULE FOR A TRAVELY
 
 
@@ -111,3 +144,17 @@ async def update_rule(travely_id: str, rule: travely_schema.RulesBase, current_u
     db.commit()
     db.refresh(rule_to_update.first())
     return rule_to_update.first()
+
+# UPDATE A TRAVELY
+
+
+@router.put("/{travely_id}", status_code=status.HTTP_200_OK, response_model=travely_schema.TravelyOut)
+async def update_travely(travely_id: str, travely: travely_schema.TravelyCreate, current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+    travely_to_update = db.query(models.TravelyModel).filter(
+        models.TravelyModel.id == travely_id)
+    if travely_to_update.first() is None:
+        raise HTTPException(status_code=404, detail="Travely not found")
+    travely_to_update.update(travely.dict())
+    db.commit()
+    db.refresh(travely_to_update.first())
+    return travely_to_update.first()
