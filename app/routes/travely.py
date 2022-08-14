@@ -1,27 +1,28 @@
 
 from typing import List, Optional
-from pydantic import parse_obj_as
 
-from fastapi import APIRouter, Body, Depends, HTTPException, status, BackgroundTasks, Query
+
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from ..schemas import travely_schema
 from sqlalchemy.orm import Session
 from ..database import get_db
 from .. import models
 from ..oauth2 import get_current_user
 from .user import add_recent_search
-import json
+import mpu
 
 
 router = APIRouter(tags=["Travelies"], prefix="/travelies",)
 
 
 # HELPER FUNCTIONS
+# Get travelies bases on recent searches
 def get_results_per_recent_searches(db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     recent_searches = db.query(models.RecentSearchModel).filter(
         models.RecentSearchModel.user_id == current_user.user_id).limit(10).all()
 
     # return only the names in a list
-    return [search.name for search in recent_searches]
+    return [search.name.lower() for search in recent_searches]
 
 
 # GET TRAVELIES
@@ -31,10 +32,10 @@ async def get_travelies(background_tasks: BackgroundTasks, current_user=Depends(
     recent_searches = get_results_per_recent_searches(db, current_user)
 
     # Check if there are recent searches
-    if len(recent_searches) > 0:
+    if len(recent_searches) > 10:
 
         return db.query(models.TravelyModel).filter(
-            models.TravelyModel.name.in_(recent_searches)).offset(skip).limit(limit).all()
+            models.TravelyModel.name.lower().in_(recent_searches)).offset(skip).limit(limit).all()
     else:
         return db.query(models.TravelyModel).offset(skip).limit(limit).all()
 
@@ -59,11 +60,22 @@ async def get_travelies(search: str, background_tasks: BackgroundTasks, current_
 
     #     return db.query(models.TravelyModel).filter().offset(skip).limit(limit).all()
 
-    return db.query(models.TravelyModel).filter(models.TravelyModel.name.contains(search)
+    return db.query(models.TravelyModel).filter(models.TravelyModel.name.lower().contains(search.lower())).offset(skip).limit(limit).all()
+
+# GET NEARBY TRAVELIES
 
 
+@router.get("/nearby", response_model=List[travely_schema.TravelyOut], status_code=status.HTTP_200_OK)
+def get_results_per_location(lat: float, long: float, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
 
-                                                ).offset(skip).limit(limit).all()
+    # Get all travelies ON 100KM RADIUS
+    travelies = db.query(models.TravelyModel).filter(
+        mpu.haversine_distance((lat, long), (models.TravelyModel.latitude, models.TravelyModel.longitude)) < 100).all()
+    if len(travelies) > 10:
+        return travelies
+    alternatives = db.query(models.TravelyModel).filter(
+        mpu.haversine_distance((lat, long), (models.TravelyModel.latitude, models.TravelyModel.longitude)) < 1000).all()
+    return alternatives if len(alternatives) > 10 else db.query(models.TravelyModel).all()
 
 
 # GET A SPECIFIC TRAVELY
